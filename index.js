@@ -1,38 +1,51 @@
-'use strict';
-const PROJECT_ID = "seismic-box-219016";
+const FtpSvr = require('ftp-srv');
+const hostname = '0.0.0.0';
+const port = 1111;
 const { Storage } = require('@google-cloud/storage');
+
+const ftpServer = new FtpSvr('ftp://' + hostname + ':' + port,
+    { anonymous: true, greeting: ["Hello", "Welcome"] });
+
+const PROJECT_ID = "seismic-box-219016";
+const bucketName = 'ftp_demo';
+
 // Creates a client
 const storage = new Storage({
     projectId: PROJECT_ID,
     keyFilename: 'serviceAccountKey.json'
 });
-const csv = require('csvtojson');
-const firebase = require('firebase');
-firebase.initializeApp({
-    "appName": "test app",
-    "serviceAccount": '../serviceAccountKey.json',
-    "databaseURL": 'https://seismic-box-219016.firebaseio.com/',
+
+ftpServer.on('login', (data, resolve, reject) => {
+    const connection = data.connection;
+    console.log('connection: ' + data);
+    console.log('resolve: ' + resolve);
+    console.log('reject: ' + reject);
+
+    connection.on('STOR', (error, fileName) => {
+        console.log('file created...' + fileName)
+        uploadFile(fileName);
+    });
+    resolve({ root: '/home/prateekk/source_code/ftp/ftpfiles' });
 });
-const functions = require('firebase-functions');
-exports.createOrders = functions.storage.bucket('ftp_demo').object().onFinalize(event => {
-    console.log("inside method...")
-    storage
-        .bucket(event.bucket)
-        .file(event.name)
-        .download().then(contents => {
-            console.log("data: " + contents.toString('utf-8'));
-            return contents.toString('utf-8');
-        })
-        .then(data => csv().fromString(data))
-        .then((csvRow) => {
-            console.log("csvRow:" + csvRow)
-            return csvRow;
-        })
-        .then((jsonData) => {
-            var ref = firebase.database().ref('/orders/');
-            ref.push(jsonData);
-            return;
-        })
-        .catch(e => console.log(e));
-    return 0;
+
+ftpServer.on('client-error', (connection, context, error) => {
+    console.log('connection: ' + connection);
+    console.log('context: ' + context);
+    console.log('error: ' + error);
 });
+
+ftpServer.listen()
+    .then(() => {
+        console.log(`Server running at http://${hostname}:${port}/`);
+    });
+
+function uploadFile(fileName) {
+    let bucket = storage.bucket(`${bucketName}`)
+    bucket.upload(fileName, { destination: '/Order-' + Date.now() + '.csv' }, (err, file) => {
+        if (err != null) {
+            console.log(err);
+        } else {
+            console.log('file uploaded successfully....' + fileName);
+        }
+    });
+}

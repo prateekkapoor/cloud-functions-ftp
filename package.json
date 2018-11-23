@@ -1,24 +1,15 @@
 {
-  "name": "functions",
-  "description": "Cloud Functions for Firebase",
+  "name": "ftp-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "lint": "eslint .",
-    "serve": "firebase serve --only functions",
-    "shell": "firebase functions:shell",
-    "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@google-cloud/storage": "^2.3.0",
-    "csvtojson": "^2.0.8",
-    "firebase": "^5.5.8",
-    "firebase-admin": "~6.0.0",
-    "firebase-functions": "^2.0.3"
-  },
-  "devDependencies": {
-    "eslint": "^4.12.0",
-    "eslint-plugin-promise": "^3.6.0"
-  },
-  "private": true
+    "ftp-srv": "^3.0.2"
+  }
 }
